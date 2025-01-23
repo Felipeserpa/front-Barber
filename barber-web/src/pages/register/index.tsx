@@ -3,21 +3,23 @@ import { Center, Flex, Text, Input, Button } from "@chakra-ui/react";
 import logo from "../../../public/images/logo.svg";
 import Image from "next/image";
 import Link from "next/link";
+
 import { useState } from "react";
 
-export default function Login() {
+export default function register() {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
 
-  function handlelogin() {
-    alert("email,password");
+  function handleregister() {
+    alert("ooii");
   }
 
   return (
     <>
       <Head>
-        <title>BarberPRO - Faça login para acessar</title>
+        <title>BarberPRO - Cria sua conta no Barbe Pro</title>
       </Head>
       <Flex
         background="barber.900"
@@ -34,6 +36,17 @@ export default function Login() {
               alt="logo barberpro"
             />
           </Center>
+          <Input
+            background="barber.400"
+            variant="filled"
+            size="lg"
+            placeholder="Nome da barbearia"
+            type="text"
+            mb={3}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+
           <Input
             background="barber.400"
             variant="filled"
@@ -55,21 +68,22 @@ export default function Login() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
+
           <Button
             background="button.cta"
             mb={6}
             color="gray.900"
             size="lg"
             _hover={{ bg: "#ffb13e" }}
-            onClick={handlelogin}
+            onClick={handleregister}
           >
-            Acessar
+            Cadastrar
           </Button>
 
           <Center mt={2}>
-            <Link href="/register">
-              <Text>
-                Ainda não possui conta? <strong>Cadastre-se</strong>
+            <Link href="/login">
+              <Text cursor="pointer">
+                Ja possui uma conta? <strong>Faça login</strong>
               </Text>
             </Link>
           </Center>
