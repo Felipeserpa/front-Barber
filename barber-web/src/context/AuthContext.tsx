@@ -1,8 +1,11 @@
 import { createContext, ReactNode, useContext, useState } from "react";
 
-import { destroyCookie } from "nookies";
+import { destroyCookie, setCookie } from "nookies";
 import path from "path";
 import router from "next/router";
+
+//importando api para fazar as conexao
+import { api } from "../services/apiClient";
 
 interface AuthContextType {
   user: UserProps;
@@ -47,11 +50,43 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<UserProps>({} as UserProps);
   const isAuthenticated = !!user;
 
+  //executando a requisao de login
   async function signin({ email, password }: SigninProps) {
-    console.log({
-      email,
-      password,
-    });
+    try {
+      const response = await api.post("/session", {
+        email,
+        password,
+      });
+
+      const {
+        id,
+        name,
+        email: userEmail,
+        endereco,
+        subscription,
+      } = response.data;
+
+      setCookie(undefined, "@barber.token", response.data.token, {
+        maxAge: 60 * 60 * 24 * 30, // 30 days ge :
+        path: "/",
+      });
+
+      setUser({
+        id,
+        name,
+        email: userEmail,
+        endereco,
+        subscription,
+      });
+
+      api.defaults.headers.common[
+        "Authorization"
+      ] = `Bearer ${response.data.token}`;
+
+      router.push("/dashboard");
+    } catch (err) {
+      console.log(err);
+    }
   }
 
   return (
