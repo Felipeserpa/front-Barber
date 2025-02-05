@@ -2,7 +2,7 @@ import { createContext, ReactNode, useContext, useState } from "react";
 
 import { destroyCookie, setCookie } from "nookies";
 import path from "path";
-import router from "next/router";
+import router, { Router } from "next/router";
 
 //importando api para fazar as conexao
 import { api } from "../services/apiClient";
@@ -11,6 +11,8 @@ interface AuthContextType {
   user: UserProps;
   isAuthenticated: boolean;
   signin: (credentials: SigninProps) => Promise<void>;
+  signUp: (credential: SignUpProps) => Promise<void>;
+  logoutUser: () => Promise<void>;
 }
 
 interface UserProps {
@@ -30,6 +32,13 @@ type AuthProviderProps = {
 };
 
 interface SigninProps {
+  email: string;
+  password: string;
+}
+
+//interce de cadastr
+interface SignUpProps {
+  name: string;
   email: string;
   password: string;
 }
@@ -89,8 +98,34 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }
 
+  async function signUp({ name, email, password }: SignUpProps) {
+    try {
+      const response = await api.post("/users", {
+        name,
+        email,
+        password,
+      });
+
+      router.push("/login");
+    } catch (err) {
+      console.log(err);
+    }
+  }
+  //limpar todos cookie de login apos fazer o logout
+  async function logoutUser() {
+    try {
+      destroyCookie(null, "@barber.token", { path: "/" });
+      router.push("/login");
+      setUser(null);
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, signin }}>
+    <AuthContext.Provider
+      value={{ user, isAuthenticated, signin, logoutUser, signUp }}
+    >
       {children}
     </AuthContext.Provider>
   );
