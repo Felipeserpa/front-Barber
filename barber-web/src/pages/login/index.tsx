@@ -7,6 +7,8 @@ import { useContext, useState } from "react";
 
 import { AuthContext } from "../../context/AuthContext";
 
+import { canSSRGuest } from "../../utilis/canSSGuest";
+
 export default function Login() {
   const { signin } = useContext(AuthContext);
 
@@ -15,6 +17,10 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
 
   async function handlelogin() {
+    if (email === "" && password === "") {
+      return;
+    }
+
     await signin({
       email,
       password,
@@ -85,3 +91,9 @@ export default function Login() {
     </>
   );
 }
+
+export const getServerSideProps = canSSRGuest(async (ctx) => {
+  return {
+    props: {},
+  };
+});

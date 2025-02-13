@@ -1,6 +1,7 @@
 import { Flex, Text, Button } from "@chakra-ui/react";
 import Head from "next/head";
 import router from "next/router";
+import { canSSRAuth } from "../../utilis/canSSRAuth";
 
 export default function Dashboard() {
   return (
@@ -31,3 +32,9 @@ export default function Dashboard() {
     </>
   );
 }
+//criando proteca de rota
+export const getServerSideProps = canSSRAuth(async (context) => {
+  return {
+    props: {},
+  };
+});
