@@ -1,27 +1,27 @@
+import { useState, useContext } from "react";
 import Head from "next/head";
-import { Center, Flex, Text, Input, Button } from "@chakra-ui/react";
-import logo from "../../../public/images/logo.svg";
 import Image from "next/image";
+import logoImg from "../../../public/images/logo.svg";
+import { Flex, Text, Center, Input, Button } from "@chakra-ui/react";
+
 import Link from "next/link";
-import { useContext, useState } from "react";
 
 import { AuthContext } from "../../context/AuthContext";
 
-import { canSSRGuest } from "../../utilis/canSSGuest";
+import { canSSRGuest } from "../../utils/canSSRGuest";
 
 export default function Login() {
-  const { signin } = useContext(AuthContext);
+  const { signIn } = useContext(AuthContext);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  async function handlelogin() {
-    if (email === "" && password === "") {
+  async function handleLogin() {
+    if (email === "" || password === "") {
       return;
     }
 
-    await signin({
+    await signIn({
       email,
       password,
     });
@@ -39,22 +39,25 @@ export default function Login() {
         justifyContent="center"
       >
         <Flex width={640} direction="column" p={14} rounded={8}>
-          <Center>
+          <Center p={4}>
             <Image
-              src={logo}
+              src={logoImg}
               quality={100}
+              width={240}
               objectFit="fill"
-              alt="logo barberpro"
+              alt="Logo barberpro"
             />
           </Center>
+
           <Input
-            background="barber.400"
+            background="barber.200"
             variant="filled"
             size="lg"
-            placeholder="Email@email.com"
+            placeholder="email@email.com"
             type="email"
             mb={3}
             value={email}
+            color="white"
             onChange={(e) => setEmail(e.target.value)}
           />
 
@@ -62,26 +65,27 @@ export default function Login() {
             background="barber.400"
             variant="filled"
             size="lg"
-            placeholder="*****"
+            placeholder="********"
             type="text"
             mb={6}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
+
           <Button
             background="button.cta"
             mb={6}
             color="gray.900"
             size="lg"
             _hover={{ bg: "#ffb13e" }}
-            onClick={handlelogin}
+            onClick={handleLogin}
           >
             Acessar
           </Button>
 
           <Center mt={2}>
             <Link href="/register">
-              <Text>
+              <Text cursor="pointer">
                 Ainda não possui conta? <strong>Cadastre-se</strong>
               </Text>
             </Link>

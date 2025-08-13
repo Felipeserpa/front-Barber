@@ -1,17 +1,14 @@
-import { createContext, ReactNode, useContext, useState } from "react";
+import { createContext, ReactNode, useState, useEffect } from 'react'
+import { destroyCookie, setCookie, parseCookies } from 'nookies'
+import Router from 'next/router'
 
-import { destroyCookie, setCookie } from "nookies";
-import path from "path";
-import router, { Router } from "next/router";
+import { api } from '../services/apiClient'
 
-//importando api para fazar as conexao
-import { api } from "../services/apiClient";
-
-interface AuthContextType {
+interface AuthContextData {
   user: UserProps;
   isAuthenticated: boolean;
-  signin: (credentials: SigninProps) => Promise<void>;
-  signUp: (credential: SignUpProps) => Promise<void>;
+  signIn: (credentials: SignInProps) => Promise<void>;
+  signUp: (credentials: SignUpProps) => Promise<void>;
   logoutUser: () => Promise<void>;
 }
 
@@ -20,8 +17,9 @@ interface UserProps {
   name: string;
   email: string;
   endereco: string | null;
-  subscription: SubscriptionProps | null;
+  subscriptions?: SubscriptionProps | null;
 }
+
 interface SubscriptionProps {
   id: string;
   status: string;
@@ -29,106 +27,131 @@ interface SubscriptionProps {
 
 type AuthProviderProps = {
   children: ReactNode;
-};
+} 
 
-interface SigninProps {
+interface SignInProps {
   email: string;
   password: string;
 }
 
-//interce de cadastr
-interface SignUpProps {
+interface SignUpProps{
   name: string;
   email: string;
   password: string;
 }
 
-export const AuthContext = createContext({} as AuthContextType);
+export const AuthContext = createContext({} as AuthContextData)
 
-export function signOut() {
-  console.log("Erro logout");
-  try {
-    destroyCookie(null, "@barber.token", { path: "/" });
-    router.push("/login");
-  } catch (err) {
-    console.log("Error ao sair");
+
+export function signOut(){
+  console.log("ERORR LOGOUT");
+  try{
+    destroyCookie(null, '@barber.token', { path: '/' })
+    Router.push('/login');
+
+  }catch(err){
+    console.log("Error ao sair")
   }
 }
 
-export function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<UserProps>({} as UserProps);
+export function AuthProvider({ children }: AuthProviderProps){
+  const [user, setUser] = useState<UserProps>()
   const isAuthenticated = !!user;
 
-  //executando a requisao de login
-  async function signin({ email, password }: SigninProps) {
-    try {
+  useEffect(() => {
+    const { '@barber.token': token } = parseCookies();
+
+    if(token){
+      api.get('/me').then(response => {
+        const { id, name, endereco, email, subscriptions } = response.data;
+        setUser({
+          id,
+          name,
+          email,
+          endereco,
+          subscriptions
+        })
+
+      })
+      .catch(()=> {
+        signOut()
+      })
+
+    }
+
+  }, [])
+
+  async function signIn({ email, password }: SignInProps){
+    try{
       const response = await api.post("/session", {
         email,
         password,
-      });
+      })
 
-      const {
-        id,
-        name,
-        email: userEmail,
-        endereco,
-        subscription,
-      } = response.data;
+      const { id, name, token, subscriptions, endereco} = response.data;
 
-      setCookie(undefined, "@barber.token", response.data.token, {
-        maxAge: 60 * 60 * 24 * 30, // 30 days ge :
-        path: "/",
-      });
+      setCookie(undefined, '@barber.token', token, {
+        maxAge: 60 * 60 * 24 * 30, // Expirar em 1 mês
+        path: '/'
+      })
 
       setUser({
         id,
         name,
-        email: userEmail,
+        email,
         endereco,
-        subscription,
-      });
+        subscriptions
+      })
 
-      api.defaults.headers.common[
-        "Authorization"
-      ] = `Bearer ${response.data.token}`;
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`
 
-      router.push("/dashboard");
-    } catch (err) {
-      console.log(err);
+      
+      Router.push('/dashboard')
+
+
+    }catch(err){
+      console.log("ERRO AO ENTRAR", err)
     }
   }
 
-  async function signUp({ name, email, password }: SignUpProps) {
-    try {
-      const response = await api.post("/users", {
+
+  async function signUp({ name, email, password}: SignUpProps){
+    try{
+      const response = await api.post('/users', {
         name,
         email,
-        password,
-      });
+        password
+      })
 
-      router.push("/login");
-    } catch (err) {
+      Router.push('/login')
+
+    }catch(err){
       console.log(err);
     }
   }
-  //limpar todos cookie de login apos fazer o logout
-  async function logoutUser() {
-    try {
-      destroyCookie(null, "@barber.token", { path: "/" });
-      router.push("/login");
+
+
+  async function logoutUser(){
+    try{
+      destroyCookie(null, '@barber.token', { path: '/' })
+      Router.push('/login')
       setUser(null);
-    } catch (err) {
-      console.log(err);
+    }catch(err){
+      console.log("ERRO AO SAIR", err)
     }
   }
 
-  return (
-    <AuthContext.Provider
-      value={{ user, isAuthenticated, signin, logoutUser, signUp }}
-    >
+
+  return(
+    <AuthContext.Provider 
+    value={{ 
+      user, 
+      isAuthenticated, 
+      signIn,
+      signUp,
+      logoutUser,  
+    }}>
       {children}
     </AuthContext.Provider>
-  );
+  )
 }
-
-export const useAuth = () => useContext(AuthContext);
