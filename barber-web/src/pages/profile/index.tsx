@@ -32,6 +32,24 @@ export default function Profile({ user, premium }: ProfileProps) {
     await logoutUser();
   }
 
+  //criando a funçao de update do perfil
+  async function handleUpdateProfile() {
+    if (name === "") {
+      return;
+    }
+
+    try {
+      const apiClient = setupAPIClient();
+      await apiClient.put("/users", {
+        name: name,
+        endereco: endereco,
+      });
+      // Adicione aqui a lógica de atualização do perfil, se necessário
+    } catch (error) {
+      console.error("Erro ao atualizar perfil:", error);
+    }
+  }
+
   return (
     <>
       <Head>
@@ -100,6 +118,7 @@ export default function Profile({ user, premium }: ProfileProps) {
                 bg="button.cta"
                 size="lg"
                 _hover={{ bg: "#ffb13e" }}
+                onClick={handleUpdateProfile}
               >
                 Salvar
               </Button>
