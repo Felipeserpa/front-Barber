@@ -41,6 +41,9 @@ export default function Haircuts({ haircuts }) {
 
   const [haircutList, setHaircutList] = useState<HaircutItem[]>(haircuts || []);
 
+
+
+  
   return (
     <>
       <Head>
