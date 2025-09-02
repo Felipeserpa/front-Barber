@@ -14,6 +14,11 @@ import { Sidebar } from "../../components/sidebar";
 import { FiChevronLeft } from "react-icons/fi";
 import Link from "next/link";
 
+//pega o id do logadouro e traz as informa����es do corte para edi����o
+//fazer a edi����o do corte
+import { canSSRAuth } from "../../utils/canSSRAuth";
+import { setupAPIClient } from "../../services/api";
+
 export default function EditHaircut() {
   const [isMobile] = useMediaQuery("(max-width: 500px)");
 
@@ -108,3 +113,45 @@ export default function EditHaircut() {
     </>
   );
 }
+//verifica se o corte existe
+export const getServerSideProps = canSSRAuth(async (ctx) => {
+  const { id } = ctx.params;
+  //fazer a busca do corte pelo id
+  try {
+    const apiClient = setupAPIClient(ctx);
+
+    const check = await apiClient.get("/haircut/detail", {
+      params: {
+        haircut_id: id,
+      },
+    });
+
+    if (check.data === null) {
+      return {
+        redirect: {
+          destination: "/haircuts",
+          permanent: false,
+        },
+      };
+    }
+
+    const response = await apiClient.get("/haircut/detail", {
+      params: {
+        haircut_id: id,
+      },
+    });
+    return {
+      props: {
+        haircut: response.data,
+      },
+    };
+    console.log(response.data);
+  } catch (err) {
+    return {
+      redirect: {
+        destination: "/haircuts",
+        permanent: false,
+      },
+    };
+  }
+});
