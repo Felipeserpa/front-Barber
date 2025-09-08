@@ -1,3 +1,4 @@
+import { useState, ChangeEvent } from "react";
 import Head from "next/head";
 import {
   Flex,
@@ -18,9 +19,63 @@ import Link from "next/link";
 //fazer a edi����o do corte
 import { canSSRAuth } from "../../utils/canSSRAuth";
 import { setupAPIClient } from "../../services/api";
+import { handleClientScriptLoad } from "next/script";
 
-export default function EditHaircut() {
+interface HaircutProps {
+  haircut: {
+    id: string;
+    name: string;
+    price: number;
+    status: boolean;
+    // add other fields as needed
+  };
+}
+
+export default function EditHaircut({ haircut }: HaircutProps) {
   const [isMobile] = useMediaQuery("(max-width: 500px)");
+  console.log(haircut);
+  // criando os estados para edi����o
+  const [name, setName] = useState(haircut.name ?? "");
+  const [price, setPrice] = useState(haircut.price ?? 0);
+  //criando o status
+  const [status, setStatus] = useState(haircut.status ?? true);
+  const [diasbledHaircut, setDisabledHaircut] = useState(
+    haircut.status ? "desabled" : "enabled"
+  );
+  //fun����o para mudar o status do corte
+  function handleChangeStatus(e: ChangeEvent<HTMLInputElement>): void {
+    if (e.target.value === "disabled") {
+      setStatus(false);
+      setDisabledHaircut("enabled");
+      console.log("desativado");
+    } else {
+      setDisabledHaircut("disabled");
+      setStatus(true);
+      console.log("ativado");
+    }
+  }
+
+  //salva edicao do corte
+  async function handleUpdateHaircut() {
+    if (name === "" || price <= 0) {
+      alert("Preencha os campos corretamente");
+      return;
+    }
+
+    try {
+      const apiClient = setupAPIClient();
+      await apiClient.put("/haircut", {
+        name: name,
+        price: Number(price),
+        status: status,
+        haircut_id: haircut?.id,
+      });
+      alert("Corte atualizado com sucesso");
+    } catch (err) {
+      console.log(err);
+      alert("Erro ao atualizar corte");
+    }
+  }
 
   return (
     <>
@@ -81,6 +136,8 @@ export default function EditHaircut() {
                 size="lg"
                 type="text"
                 w="100%"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
               />
 
               <Input
@@ -90,11 +147,21 @@ export default function EditHaircut() {
                 size="lg"
                 type="number"
                 w="100%"
+                value={price}
+                onChange={(e) => setPrice(parseFloat(e.target.value))}
               />
 
               <Stack mb={6} align="center" direction="row">
                 <Text fontWeight="bold">Desativar corte</Text>
-                <Switch size="lg" colorScheme="red" />
+                <Switch
+                  size="lg"
+                  colorScheme="red"
+                  value={diasbledHaircut}
+                  isChecked={diasbledHaircut === " disabled" ? false : true}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                    handleChangeStatus(e)
+                  }
+                />
               </Stack>
 
               <Button
@@ -103,6 +170,7 @@ export default function EditHaircut() {
                 bg="button.cta"
                 color="gray.900"
                 _hover={{ bg: "#FFB13e" }}
+                onClick={handleUpdateHaircut}
               >
                 Salvar
               </Button>
