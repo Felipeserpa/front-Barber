@@ -16,8 +16,10 @@ import { FiChevronLeft } from "react-icons/fi";
 import { handleClientScriptLoad } from "next/script";
 import router from "next/router";
 import { setupAPIClient } from "../../../services/api";
+//importando função para verificar se o usuário está autenticado
+import { canSSRAuth } from "../../../utils/canSSRAuth";
 
-export default function NewHaircut() {
+export default function NewHaircut({ haircuts }) {
   const [isMobile] = useMediaQuery("(max-width: 500px)");
 
   //criando  impunt do usestate para armazenar os dados do novo corte
@@ -157,3 +159,5 @@ export default function NewHaircut() {
     </>
   );
 }
+
+// Utilizando a função canSSRAuth para proteger a rota e garantir que apenas usuários autenticados possam acessá-la
